@@ -1,8 +1,10 @@
 import { Router } from "express";
-import { getAllStagesController } from "../controllers/stages.controller";
+import { getAllStagesController, getStageCountByUserController } from "../controllers/stages.controller";
 
 const router = Router();
 
 router.get('/', getAllStagesController);
+
+router.get("/count", getStageCountByUserController);
 
 export default router;

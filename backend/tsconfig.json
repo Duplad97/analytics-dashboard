@@ -6,10 +6,12 @@
         "esModuleInterop": true,
         "skipLibCheck": true,
         "forceConsistentCasingInFileNames": true,
-        "outDir": "./dist"
+        "outDir": "./dist",
+        "types": ["node"]
     },
     "include": [
-        "src/**/*.ts"
+        "src/**/*.ts",
+        "prisma/**/*.ts"
     ],
     "exclude": [
         "node_modules"

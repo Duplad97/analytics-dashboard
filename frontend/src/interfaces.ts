@@ -19,3 +19,9 @@ export interface Log {
     activity: Object;
     createdAt: Date;
 }
+
+export interface PieChartData {
+    id: number;
+    value: number;
+    label: string;
+}

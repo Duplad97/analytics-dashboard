@@ -1,5 +1,5 @@
 import { ParsedUrlQuery } from "querystring";
-import { prisma } from "../config/prisma";
+import { prisma } from "../config/prisma.config";
 
 export async function getUsersByQueryService(query: ParsedUrlQuery) {
     try {
