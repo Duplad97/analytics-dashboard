@@ -21,7 +21,7 @@ model User {
 model FunnelStage {
   id    Int    @id @default(autoincrement())
   name  String @unique
-  order Int // Order in the funnel (1 = first stage, etc.)
+  order Int
   users User[] @relation("UserCurrentStage")
 }
 

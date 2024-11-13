@@ -38,7 +38,6 @@ async function main() {
         // Determine a random end stage for each user
         const endStageIndex = Math.floor(Math.random() * stages.length);
 
-        // Step 3: Create ordered transition logs up to the end stage for each user
         for (let i = 1; i <= endStageIndex; i++) {
             const fromStage = stages[i - 1];
             const toStage = stages[i];
