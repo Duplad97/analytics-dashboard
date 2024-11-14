@@ -1,4 +1,4 @@
-import FunnelStagesPage from "../pages/funnel-stages.page";
+import FunnelStagesPage from "../pages/dashboard.page";
 import UsersPage from "../pages/users.page";
 
 export const router = [

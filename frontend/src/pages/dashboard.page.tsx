@@ -1,4 +1,4 @@
-import Dashboard from '../components/dashboard.component';
+import Dashboard from '../components/dashboard/dashboard.component';
 
 function FunnelStagesPage() {
 

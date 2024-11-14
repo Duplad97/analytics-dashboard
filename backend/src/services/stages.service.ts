@@ -1,10 +1,11 @@
-import { groupBy } from "lodash";
+import { groupBy, orderBy } from "lodash";
 import { prisma } from "../config/prisma.config";
 
 export async function getAllStagesService() {
     try {
         const stages = await prisma.funnelStage.findMany();
-        return stages;
+        const orderedStages = orderBy(stages, "order", "asc")
+        return orderedStages;
     } catch (error) {
         throw error;
     }
@@ -17,7 +18,7 @@ export async function getStageCountByUserService() {
         const stageCounts = Object.entries(usersByStageId).map(([stageId, stageUsers]) => ({
             stageId,
             count: stageUsers.length,
-            value: (stageUsers.length / users.length) * 100
+            value: parseFloat(((stageUsers.length / users.length) * 100).toFixed(2))
         }));
         return stageCounts;
     } catch (error) {

@@ -20,8 +20,9 @@ export interface Log {
     createdAt: Date;
 }
 
-export interface PieChartData {
+export interface TabData {
     id: number;
-    value: number;
     label: string;
+    content: JSX.Element;
+    closable: boolean;
 }

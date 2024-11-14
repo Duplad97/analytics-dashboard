@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import { faker } from '@faker-js/faker';
+import { orderBy } from 'lodash';
 
 const prisma = new PrismaClient();
 
@@ -10,8 +11,8 @@ async function main() {
         { name: 'Downloaded app', order: 2 },
         { name: 'Completed onboarding', order: 3 },
         { name: 'Signed up for free trial', order: 4 },
-        { name: 'Converted to paid subscription', order: 5 },
-        { name: 'Churned after free trial', order: 6 },
+        { name: 'Churned after free trial', order: 5 },
+        { name: 'Converted to paid subscription', order: 6 },
         { name: 'Churned after paid subscription', order: 7 },
         { name: 'Renewed paid subscription', order: 8 },
     ];
@@ -21,7 +22,7 @@ async function main() {
     );
 
     // Seed Users with random currentStageId
-    for (let i = 0; i < 100; i++) {
+    for (let i = 0; i < 250; i++) {
         await prisma.user.create({
             data: {
                 name: faker.person.fullName(),
@@ -34,26 +35,22 @@ async function main() {
     // Seed StageTransitions for each user with random stages
     const users = await prisma.user.findMany();
     const stages = await prisma.funnelStage.findMany();
+    const orderedStages = orderBy(stages, "order", "asc");
     for (const user of users) {
         // Determine a random end stage for each user
-        const endStageIndex = Math.floor(Math.random() * stages.length);
+        const endStageIndex = stages.findIndex(s => s.id === user.currentStageId);
 
         for (let i = 1; i <= endStageIndex; i++) {
-            const fromStage = stages[i - 1];
-            const toStage = stages[i];
+            const fromStage = orderedStages[i - 1];
+            const toStage = orderedStages[i];
 
             await prisma.log.create({
                 data: {
                     userId: user.id,
-                    activity: { fromStageId: fromStage.id, toStageId: toStage.id },
+                    fromStageId: fromStage.id,
+                    toStageId: toStage.id,
                     createdAt: new Date(Date.now() + i * 1000), // Increment timestamp for realism
                 },
-            });
-
-            // Update user's current stage to the next stage in the sequence
-            await prisma.user.update({
-                where: { id: user.id },
-                data: { currentStageId: toStage.id },
             });
         }
     }
