@@ -20,7 +20,7 @@ export async function getStageCountByUserService() {
             count: stageUsers.length,
             value: parseFloat(((stageUsers.length / users.length) * 100).toFixed(2))
         }));
-        return stageCounts;
+        return { stageCounts: stageCounts, allUserCount: users.length };
     } catch (error) {
         throw error;
     }   

@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Container, Typography, Box, Paper, styled } from '@mui/material';
+import { Container, Typography, Box, Paper, styled, LinearProgress } from '@mui/material';
 import { FunnelStage, TabData } from '../../interfaces';
 import api from '../../config/api.config';
-import { ChartsLegend, Gauge, pieArcLabelClasses, PieChart, PiePlot, PieSeriesType, PieValueType, ResponsiveChartContainer } from '@mui/x-charts';
+import { ChartsLegend, ChartsTooltip, pieArcLabelClasses, PiePlot, PieSeriesType, PieValueType, ResponsiveChartContainer } from '@mui/x-charts';
 import { MakeOptional, useDrawingArea } from '@mui/x-charts/internals';
 import ProbabilityGauge from './probability-gauge.component';
 import { getStageLabel } from '../../_helper/stage-label.helper';
@@ -30,6 +30,8 @@ interface IProps {
 function BreakDownChart(props: IProps) {
     const [funnelStages, setFunnelStages] = useState<FunnelStage[]>([]);
     const [series, setSeries] = useState<PieSeriesType<MakeOptional<PieValueType, "id">>[]>([]);
+    const [userCount, setUserCount] = useState<number>(0);
+    const [loading, setLoading] = useState<boolean>(true);
 
     const valueFormatter = useMemo(() => (value: MakeOptional<PieValueType, "id">) => `${value.value}%`, []);
 
@@ -39,15 +41,16 @@ function BreakDownChart(props: IProps) {
 
 
     const getStageCounts = async () => {
+        setLoading(true);
         try {
             const stagesResponse = await api.get("/stages");
             const funnelData: FunnelStage[] = stagesResponse.data;
             setFunnelStages(funnelData);
 
             const countResponse = await api.get("/stages/count");
-
+            setUserCount(countResponse.data.allUserCount)
             const data: MakeOptional<PieValueType, "id">[] = [];
-            countResponse.data.forEach((stageCount: { stageId: string, count: number, value: number }) => {
+            countResponse.data.stageCounts.forEach((stageCount: { stageId: string, count: number, value: number }) => {
                 const parsedStageId = parseInt(stageCount.stageId);
                 const funnelStage = funnelData.find(stage => stage.id === parsedStageId);
                 data.push({
@@ -73,6 +76,7 @@ function BreakDownChart(props: IProps) {
         } catch (error) {
             console.log(error);
         }
+        setLoading(false);
     }
 
     const getTransitionProbabilities = async (itemId: string) => {
@@ -104,7 +108,7 @@ function BreakDownChart(props: IProps) {
                     The current breakdown of the user base (which stage each percentage of the user base is in).
                 </Typography>
                 <Paper elevation={3} style={{ height: 600, width: '100%', marginTop: '16px', padding: '15px' }}>
-                    {series.length && <ResponsiveChartContainer
+                    {!loading ? <>{series.length ? <ResponsiveChartContainer
                         series={series}
                         sx={{
                             [`& .${pieArcLabelClasses.root}`]: {
@@ -114,7 +118,8 @@ function BreakDownChart(props: IProps) {
                         }}
                     >
                         <PiePlot />
-                        <PieCenterLabel>Total users: 250</PieCenterLabel>
+                        <ChartsTooltip trigger='item' />
+                        <PieCenterLabel>{`Total users: ${userCount}`}</PieCenterLabel>
                         <ChartsLegend
                             direction="column"
                             position={{
@@ -123,7 +128,10 @@ function BreakDownChart(props: IProps) {
                             }}
                             onItemClick={(event, context, index) => getTransitionProbabilities(context.itemId as string)}
                         />
-                    </ResponsiveChartContainer>}
+                    </ResponsiveChartContainer> : <Typography variant="body1" color="textSecondary" gutterBottom>
+                        No data to display
+                    </Typography>}</>
+                    : <LinearProgress />}
                 </Paper>
             </Box>
         </Container>

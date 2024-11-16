@@ -3,6 +3,7 @@ import { Tabs, Tab, IconButton, Typography, Box } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import BreakdownChart from './breakdown-chart.component';
 import { TabData } from '../../interfaces';
+import TransitionChart from './transition-chart.component';
 
 function Dashboard() {
     const addTab = (tabData: TabData) => {
@@ -12,6 +13,7 @@ function Dashboard() {
 
     const [tabs, setTabs] = useState<TabData[]>([
         { id: 0, label: 'Breakdown Chart', content: <BreakdownChart addTab={addTab} />, closable: false },
+        { id: 1, label: 'Transition Chart', content: <TransitionChart />, closable: false }
     ]);
     const [activeTab, setActiveTab] = useState<number>(0);
 
@@ -28,7 +30,7 @@ function Dashboard() {
 
     return (
         <Box>
-            <Tabs value={activeTab} onChange={handleTabChange}>
+            <Tabs value={activeTab} onChange={handleTabChange} variant="scrollable" scrollButtons="auto" sx={{ marginTop: 1 }}>
                 {tabs.map((tab) => (
                     <Tab
                         key={tab.id}

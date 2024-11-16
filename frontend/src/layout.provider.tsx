@@ -1,5 +1,5 @@
 import { AppProvider, DashboardLayout, Navigation, Router } from "@toolpad/core";
-import { Route, Routes, useNavigate } from "react-router-dom";
+import { Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import { router } from "./config/router";
 import { createTheme } from "@mui/material";
 import { Dashboard, People } from "@mui/icons-material";
@@ -35,9 +35,10 @@ const theme = createTheme({
 
 function LayoutProvider() {
     const navigate = useNavigate();
+    const location = useLocation()
 
     const baseRoute: Router = {
-        pathname: '/',
+        pathname: location.pathname,
         searchParams: new URLSearchParams(),
         navigate: (path) => navigate(path),
     }

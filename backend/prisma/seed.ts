@@ -1,8 +1,18 @@
-import { PrismaClient } from '@prisma/client';
+import { Log, PrismaClient } from '@prisma/client';
 import { faker } from '@faker-js/faker';
 import { orderBy } from 'lodash';
 
 const prisma = new PrismaClient();
+
+const now = new Date();
+const startOfMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+const endOfMonth = new Date(now.getFullYear(), now.getMonth(), 0);
+
+const generateRandomDate = () => {
+    const start = startOfMonth.getTime();
+    const end = endOfMonth.getTime();
+    return new Date(start + Math.random() * (end - start));
+};
 
 async function main() {
     // Seed FunnelStages
@@ -36,6 +46,7 @@ async function main() {
     const users = await prisma.user.findMany();
     const stages = await prisma.funnelStage.findMany();
     const orderedStages = orderBy(stages, "order", "asc");
+    const logs = [];
     for (const user of users) {
         // Determine a random end stage for each user
         const endStageIndex = stages.findIndex(s => s.id === user.currentStageId);
@@ -43,17 +54,16 @@ async function main() {
         for (let i = 1; i <= endStageIndex; i++) {
             const fromStage = orderedStages[i - 1];
             const toStage = orderedStages[i];
+            logs.push({
+                userId: user.id,
+                fromStageId: fromStage.id,
+                toStageId: toStage.id,
+                createdAt: generateRandomDate()
 
-            await prisma.log.create({
-                data: {
-                    userId: user.id,
-                    fromStageId: fromStage.id,
-                    toStageId: toStage.id,
-                    createdAt: new Date(Date.now() + i * 1000), // Increment timestamp for realism
-                },
-            });
+            })
         }
     }
+    await prisma.log.createMany({ data: logs });
 }
 
 main()
