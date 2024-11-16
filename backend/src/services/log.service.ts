@@ -1,5 +1,6 @@
 import { prisma } from "../config/prisma.config";
 import dayjs from "dayjs";
+import { IDynamicObject } from "../interfaces";
 
 export async function getLogsService() {
     try {
@@ -76,7 +77,7 @@ export async function getDailyTransitionsService() {
         });
 
         for (const date of datesInRange) {
-            let dateData:any = {
+            let dateData:IDynamicObject = {
                 date: new Date(date),
             };
 

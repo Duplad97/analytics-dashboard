@@ -3,7 +3,7 @@ import { ResponsiveChartContainer, ChartsLegend, LinePlot, MarkPlot, ChartsXAxis
 import { MakeOptional } from "@mui/x-charts/internals";
 import { useEffect, useState } from "react";
 import api from "../../config/api.config";
-import { FunnelStage } from "../../interfaces";
+import { FunnelStage, IDynamicObject } from "../../interfaces";
 import dayjs from "dayjs";
 import { LegendItemParams } from "@mui/x-charts/ChartsLegend/chartsLegend.types";
 import { Refresh } from "@mui/icons-material";
@@ -36,7 +36,7 @@ function TransitionChart() {
             const stagesResponse = await api.get("/stages");
             const funnelData: FunnelStage[] = stagesResponse.data;
             const response = await api.get("/log/daily-transitions");
-            const transformedData = response.data.map((entry: any) => ({
+            const transformedData = response.data.map((entry: IDynamicObject) => ({
                 ...entry,
                 date: new Date(entry.date), // Parse date string into Date object
             }));

@@ -1,3 +1,3 @@
 export interface IDynamicObject {
-    [key: string]: Object;
+    [key: string]: any;
 }

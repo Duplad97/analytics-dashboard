@@ -1,5 +1,5 @@
 import { Container, Box, Typography, Paper, Button, IconButton, Dialog, DialogTitle, DialogContent, DialogActions } from "@mui/material";
-import { DataGrid, GridCellParams, GridFilterModel, GridPaginationModel, GridRowSelectionModel, GridToolbar } from "@mui/x-data-grid";
+import { DataGrid, GridFilterModel, GridPaginationModel, GridRowSelectionModel, GridToolbar } from "@mui/x-data-grid";
 import { useEffect, useState } from "react";
 import { FunnelStage, User } from "../../interfaces";
 import api from "../../config/api.config";
@@ -70,7 +70,7 @@ function UsersTable() {
 
     const handleDeleteUsers = async () => {
         try {
-            const response = await api.delete("/user", { data: { userIds: selectedRows } });
+            await api.delete("/user", { data: { userIds: selectedRows } });
             setShowDeleteDialog(false);
             setUsers((prevState) => {
                 return prevState.filter((user) => !selectedRows.includes(user.id));
