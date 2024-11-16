@@ -1,4 +1,4 @@
-import { Container, Box, Typography, Paper, LinearProgress } from "@mui/material";
+import { Container, Box, Typography, Paper, LinearProgress, IconButton, useMediaQuery } from "@mui/material";
 import { ResponsiveChartContainer, ChartsLegend, LinePlot, MarkPlot, ChartsXAxis, ChartsTooltip, ChartsYAxis, LineSeriesType, PieValueType, BarSeriesType, PieSeriesType, ScatterSeriesType, LineHighlightPlot, ChartsGrid, ChartsAxisHighlight } from "@mui/x-charts";
 import { MakeOptional } from "@mui/x-charts/internals";
 import { useEffect, useState } from "react";
@@ -6,6 +6,7 @@ import api from "../../config/api.config";
 import { FunnelStage } from "../../interfaces";
 import dayjs from "dayjs";
 import { LegendItemParams } from "@mui/x-charts/ChartsLegend/chartsLegend.types";
+import { Refresh } from "@mui/icons-material";
 
 const getRandomColor = () => {
     const letters = '0123456789ABCDEF';
@@ -22,6 +23,8 @@ function TransitionChart() {
     const [legend, setLegend] = useState<LegendItemParams[]>([]);
     const [seriesShowing, setSeriesShowing] = useState<string>("");
     const [loading, setLoading] = useState<boolean>(true);
+
+    const isMobile = useMediaQuery('(max-width:1100px)');
 
     useEffect(() => {
         getDailyTransitions();
@@ -81,13 +84,20 @@ function TransitionChart() {
     return (
         <Container>
             <Box my={3}>
-                <Typography variant="h4" gutterBottom>
-                    Transition Chart
-                </Typography>
-                <Typography variant="body1" color="textSecondary" gutterBottom>
-                    The number of transitions from each stage in the last month.
-                </Typography>
-                <Paper elevation={3} style={{ height: 650, width: '100%', marginTop: '16px', padding: '15px' }}>
+                <Box display={"flex"} justifyContent={"space-between"} alignItems={"center"}>
+                    <Box>
+                        <Typography variant="h4" gutterBottom>
+                            Transition Chart
+                        </Typography>
+                        <Typography variant="body1" color="textSecondary" gutterBottom>
+                            The number of transitions from each stage in the last month.
+                        </Typography>
+                    </Box>
+                    <IconButton onClick={getDailyTransitions}>
+                        <Refresh />
+                    </IconButton>
+                </Box>
+                <Paper elevation={3} style={{ height: '90vh', width: '100%', marginTop: '16px', padding: '15px' }}>
                     {!loading ? <>{series.length ? <ResponsiveChartContainer
                         series={seriesShowing.length ? series.filter(s => s.id === seriesShowing) : series}
                         dataset={dataset}
@@ -99,8 +109,8 @@ function TransitionChart() {
                                 valueFormatter: (date) => dayjs(new Date(date)).format("ddd DD"),
                             },
                         ]}
-                        yAxis={[{ id: 'value-axis', label: 'Counts' }]}
-                        margin={{ left: 60, top: 10, right: 20, bottom: 120 }}
+                        yAxis={[{ id: 'value-axis' }]}
+                        margin={{ left: 60, top: 10, right: 20, bottom: isMobile ? 250 : 120 }}
                     >
                         <LinePlot />
                         <MarkPlot />

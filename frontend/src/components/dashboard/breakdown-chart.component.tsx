@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Container, Typography, Box, Paper, styled, LinearProgress } from '@mui/material';
+import { Container, Typography, Box, Paper, styled, LinearProgress, IconButton, useMediaQuery } from '@mui/material';
 import { FunnelStage, TabData } from '../../interfaces';
 import api from '../../config/api.config';
 import { ChartsLegend, ChartsTooltip, pieArcLabelClasses, PiePlot, PieSeriesType, PieValueType, ResponsiveChartContainer } from '@mui/x-charts';
 import { MakeOptional, useDrawingArea } from '@mui/x-charts/internals';
 import ProbabilityGauge from './probability-gauge.component';
 import { getStageLabel } from '../../_helper/stage-label.helper';
+import { Refresh } from '@mui/icons-material';
 
 const StyledText = styled('text')(({ theme }) => ({
     fill: theme.palette.text.primary,
@@ -32,6 +33,8 @@ function BreakDownChart(props: IProps) {
     const [series, setSeries] = useState<PieSeriesType<MakeOptional<PieValueType, "id">>[]>([]);
     const [userCount, setUserCount] = useState<number>(0);
     const [loading, setLoading] = useState<boolean>(true);
+
+    const isMobile = useMediaQuery('(max-width:1100px)');
 
     const valueFormatter = useMemo(() => (value: MakeOptional<PieValueType, "id">) => `${value.value}%`, []);
 
@@ -101,37 +104,56 @@ function BreakDownChart(props: IProps) {
     return (
         <Container>
             <Box my={3}>
-                <Typography variant="h4" gutterBottom>
-                    Breakdown Chart
-                </Typography>
-                <Typography variant="body1" color="textSecondary" gutterBottom>
-                    The current breakdown of the user base (which stage each percentage of the user base is in).
-                </Typography>
-                <Paper elevation={3} style={{ height: 600, width: '100%', marginTop: '16px', padding: '15px' }}>
-                    {!loading ? <>{series.length ? <ResponsiveChartContainer
-                        series={series}
-                        sx={{
-                            [`& .${pieArcLabelClasses.root}`]: {
-                                fontWeight: 'bold',
-                                fill: "white"
-                            },
-                        }}
-                    >
-                        <PiePlot />
-                        <ChartsTooltip trigger='item' />
-                        <PieCenterLabel>{`Total users: ${userCount}`}</PieCenterLabel>
-                        <ChartsLegend
-                            direction="column"
-                            position={{
-                                horizontal: 'left',
-                                vertical: 'middle',
-                            }}
-                            onItemClick={(event, context, index) => getTransitionProbabilities(context.itemId as string)}
-                        />
-                    </ResponsiveChartContainer> : <Typography variant="body1" color="textSecondary" gutterBottom>
-                        No data to display
-                    </Typography>}</>
-                    : <LinearProgress />}
+                <Box display={"flex"} justifyContent={"space-between"} alignItems={"center"}>
+                    <Box>
+                        <Typography variant="h4" gutterBottom>
+                            Breakdown Chart
+                        </Typography>
+                        <Typography variant="body1" color="textSecondary" gutterBottom>
+                            The current breakdown of the user base (which stage each percentage of the user base is in).
+                        </Typography>
+                    </Box>
+                    <IconButton onClick={getStageCounts}>
+                        <Refresh />
+                    </IconButton>
+                </Box>
+                <Paper elevation={3} style={{ height:'85vh', width: '100%', marginTop: '16px', padding: '15px' }}>
+                    {!loading ?
+                        <>
+                            {series.length ?
+                                <>
+                                    <Typography variant="body1" color="textSecondary" gutterBottom>
+                                        Click on a legend item to see the transition probability to the next stage.
+                                    </Typography>
+                                    <ResponsiveChartContainer
+                                        series={series}
+                                        sx={{
+                                            [`& .${pieArcLabelClasses.root}`]: {
+                                                fontWeight: 'bold',
+                                                fill: "white"
+                                            },
+                                        }}
+                                        margin={isMobile ? {top: 370} : {}}
+                                    >
+                                        <PiePlot />
+                                        <ChartsTooltip trigger='item' />
+                                        <PieCenterLabel>{`Total users: ${userCount}`}</PieCenterLabel>
+                                        <ChartsLegend
+                                            itemGap={25}
+                                            direction={isMobile ? "row" : "column"}
+                                            position={{
+                                                horizontal: 'left',
+                                                vertical: isMobile ? 'top' : 'middle',
+                                            }}
+                                            onItemClick={(event, context, index) => getTransitionProbabilities(context.itemId as string)}
+                                        />
+                                    </ResponsiveChartContainer>
+                                </>
+                                : <Typography variant="body1" color="textSecondary" gutterBottom>
+                                    No data to display
+                                </Typography>}
+                        </>
+                        : <LinearProgress />}
                 </Paper>
             </Box>
         </Container>

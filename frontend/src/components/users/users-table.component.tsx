@@ -1,10 +1,11 @@
-import { Container, Box, Typography, Paper } from "@mui/material";
-import { DataGrid, GridColDef, GridPaginationModel } from "@mui/x-data-grid";
+import { Container, Box, Typography, Paper, Button, IconButton, Dialog, DialogTitle, DialogContent, DialogActions } from "@mui/material";
+import { DataGrid, GridCellParams, GridFilterModel, GridPaginationModel, GridRowSelectionModel, GridToolbar } from "@mui/x-data-grid";
 import { useEffect, useState } from "react";
 import { FunnelStage, User } from "../../interfaces";
 import api from "../../config/api.config";
-import dayjs from "dayjs";
-import { getStageLabel } from "../../_helper/stage-label.helper";
+import { columns } from "../../_helper/users-columns";
+import UserFormDialog from "./user-form-dialog.component";
+import { Refresh } from "@mui/icons-material";
 
 function UsersTable() {
     const [loading, setLoading] = useState<boolean>(true);
@@ -13,6 +14,10 @@ function UsersTable() {
     const [totalRows, setTotalRows] = useState(0);
     const [page, setPage] = useState(0);
     const [pageSize, setPageSize] = useState(15);
+    const [filter, setFilter] = useState<string>("");
+    const [selectedRows, setSelectedRows] = useState<number[]>([]);
+    const [showUserFormDialog, setShowUserFormDialog] = useState<boolean>(false);
+    const [showDeleteDialog, setShowDeleteDialog] = useState<boolean>(false);
 
     useEffect(() => {
         getFunnelStages();
@@ -21,7 +26,7 @@ function UsersTable() {
 
     useEffect(() => {
         getUsers();
-    }, [page, pageSize])
+    }, [page, pageSize, filter])
 
     const getUsers = async () => {
         setLoading(true);
@@ -29,7 +34,8 @@ function UsersTable() {
             const response = await api.get("/user", {
                 params: {
                     page: page + 1,
-                    pageSize
+                    pageSize,
+                    filter
                 }
             });
             setUsers(response.data.users);
@@ -49,51 +55,94 @@ function UsersTable() {
         }
     }
 
-    const handlePaginationChange = (pagination:GridPaginationModel) => {
+    const handlePaginationChange = (pagination: GridPaginationModel) => {
         setPage(pagination.page);
         setPageSize(pagination.pageSize);
     }
 
-    const columns: GridColDef<(typeof users)[number]>[] = [
-    { field: 'id', headerName: 'ID', width: 90 },
-    {
-      field: 'name',
-      headerName: 'Name',
-      width: 200,
-    },
-    {
-        field: 'email',
-        headerName: 'Email',
-        width: 250,
-    },
-    {
-        field: 'currentStageId',
-        headerName: 'Current Stage',
-        width: 250,
-        valueGetter: (value, row) => getStageLabel(value, funnelStages),
-    },
-    {
-        field: 'createdAt',
-        headerName: 'Current Stage',
-        width: 200,
-        valueGetter: (value, row) => dayjs(new Date(value)).format("YYYY-MM-DDTHH:mm"),
-    },
-  ];
+    const handleRowSelectionChange = (rowSelection: GridRowSelectionModel) => {
+        setSelectedRows(rowSelection as number[]);
+    }
+
+    const handleFilterChange = (filter: GridFilterModel) => {
+        setFilter(filter.quickFilterValues ? filter.quickFilterValues[0] : "");
+    }
+
+    const handleDeleteUsers = async () => {
+        try {
+            const response = await api.delete("/user", { data: { userIds: selectedRows } });
+            setShowDeleteDialog(false);
+            setUsers((prevState) => {
+                return prevState.filter((user) => !selectedRows.includes(user.id));
+            });
+            setTotalRows((prevState) => prevState - selectedRows.length);
+            setSelectedRows([]);
+        } catch (error) {
+            console.log(error);
+        }
+    }
 
     return (
+        <>
         <Container>
             <Box my={3}>
                 <Typography variant="h4" gutterBottom>
                     Users
                 </Typography>
                 <Typography variant="body1" color="textSecondary" gutterBottom>
-                    Here you can add, remove or edit users (only stage in funnel).
+                    Here you can add and remove users, or edit their stage in the funnel.
                 </Typography>
                 <Paper elevation={3} style={{ width: '100%', marginTop: '16px', padding: '15px' }}>
-                    <DataGrid loading={loading} columns={columns} rows={users} pageSizeOptions={[15, 50, 100]} rowCount={totalRows} pagination paginationModel={{pageSize, page}} onPaginationModelChange={handlePaginationChange} paginationMode="server"/>
+                    <Box display={"flex"} mb={2} justifyContent={"end"}>
+                        {selectedRows.length > 0 && 
+                        <Button sx={{ marginRight: 2}} variant="outlined" onClick={() => setShowDeleteDialog(true)}>{`Delete (${selectedRows.length})`}</Button>}
+
+                        <Button sx={{ marginRight: 2}} variant="contained" onClick={() => setShowUserFormDialog(true)}>Add new</Button>
+
+                        <IconButton onClick={getUsers}>
+                            <Refresh />
+                        </IconButton>
+                    </Box>
+                    <DataGrid
+                        sx={{ maxWidth: "85vw" }}
+                        loading={loading} columns={columns(funnelStages)}
+                        rows={users} pageSizeOptions={[15, 50, 100]}
+                        rowCount={totalRows}
+                        pagination
+                        paginationModel={{ pageSize, page }}
+                        onPaginationModelChange={handlePaginationChange}
+                        paginationMode="server"
+                        checkboxSelection
+                        onRowSelectionModelChange={handleRowSelectionChange}
+                        onFilterModelChange={handleFilterChange}
+                        slots={{
+                            toolbar: GridToolbar,
+                        }}
+                        slotProps={{
+                            toolbar: {
+                                showQuickFilter: true,
+                            },
+                        }}
+                    />
                 </Paper>
             </Box>
         </Container>
+        <UserFormDialog setUsers={setUsers} open={showUserFormDialog} handleClose={() => setShowUserFormDialog(false)} funnelStages={funnelStages} />
+            <Dialog open={showDeleteDialog}>
+                <DialogTitle>
+                    Confirm Delete Users
+                </DialogTitle>
+                <DialogContent>
+                <Typography variant="body1" gutterBottom>
+                    Are you sure you want to delete <b>{selectedRows.length}</b> user(s)?
+                </Typography>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setShowDeleteDialog(false)}>Cancel</Button>
+                    <Button variant="contained" onClick={handleDeleteUsers}>Delete</Button>
+                </DialogActions>
+            </Dialog>
+        </>
     )
 }
 export default UsersTable;

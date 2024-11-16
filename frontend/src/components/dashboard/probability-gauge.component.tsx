@@ -12,7 +12,7 @@ function ProbabilityGauge(props: IProps) {
 
     return (
         <Box m={2}>
-            <Paper elevation={3} style={{ height: 270, width: '100%', marginTop: '16px', padding: '15px' }}>
+            <Paper elevation={3} style={{ height: '35vh', width: '100%', marginTop: '16px', padding: '15px' }}>
                 <Typography variant="h4" gutterBottom>
                     Transition Probability
                 </Typography>
