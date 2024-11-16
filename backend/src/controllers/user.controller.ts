@@ -1,11 +1,10 @@
 import { NextFunction, Request, Response } from "express";
-import { getUsersByQueryService } from "../services/user.service";
-import { ParsedUrlQuery } from "node:querystring";
+import { getUsersService } from "../services/user.service";
 
-export async function getUsersByQueryController(req: Request, res: Response, next: NextFunction) {
+export async function getUsersController(req: Request, res: Response, next: NextFunction) {
     try {
-        const query = req.query as ParsedUrlQuery;
-        const users = await getUsersByQueryService(query);
+        const { page, pageSize } = req.query;
+        const users = await getUsersService(parseInt(page as string), parseInt(pageSize as string));
         res.send(users);
     } catch (error) {
         next(error);
